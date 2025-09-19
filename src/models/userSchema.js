@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
+
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -26,6 +27,11 @@ const userSchema = new mongoose.Schema({
     },
     avatar: {
         type: String
+    },
+    role: {
+        type: String,
+        enum: ["user", "admin"],
+        required: true
     }
 
 }, { timestamps: true })
@@ -34,6 +40,9 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre("save", async function (next) {
     const user = this
+    if (!user.isModified('password')) {
+        return
+    }
     const hashPassword = await bcrypt.hash(user.password, 10)
     user.password = hashPassword
     next()
@@ -42,7 +51,7 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.getJWT = async function () {
     try {
         const user = this
-        const token = jwt.sign({ _id: user._id }, process.env.JWTKEY)
+        const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET)
         return token
     } catch (error) {
         console.log(error.message)
@@ -61,6 +70,7 @@ userSchema.methods.verifyPassword = async function (userPassword) {
         return false
     }
 }
+
 
 module.exports = mongoose.model("User", userSchema)
 
