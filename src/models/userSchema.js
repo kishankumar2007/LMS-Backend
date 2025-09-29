@@ -28,9 +28,12 @@ const userSchema = new mongoose.Schema({
     avatar: {
         type: String
     },
-    role: {
+    interest: {
+        type: [String],
+    },
+    role:{
         type: String,
-        enum: ["user", "admin"],
+        enum:["user","admin"],
         required: true
     }
 

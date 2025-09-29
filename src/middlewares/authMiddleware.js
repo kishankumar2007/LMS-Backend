@@ -30,7 +30,7 @@ const adminAuth = async (req, res, next) => {
 
         const user = await User.findById({ _id })
         if (!user) return res.status(400).json({ message: "session expired." })
-        if (user.role != "admin") res.status(401).json("Your are not authorized")
+        if (user.role != "admin") return res.status(401).json("Your are not authorized")
         req.user = user
         next()
     } catch (error) {

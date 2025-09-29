@@ -33,10 +33,6 @@ const courseSchema = new mongoose.Schema({
         type: String,
         default: "Free"
     },
-    role:{
-        type: String,
-        required: true
-    },
     isPublic: {
         type: Boolean,
         required: true,

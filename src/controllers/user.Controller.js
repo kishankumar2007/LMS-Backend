@@ -75,6 +75,7 @@ const allCourses = async (req, res) => {
 
      let limit = limitReq || 10
      if (limitReq > 12) limit = 10
+     
      const totalPages = Math.ceil(totalCourses / limit)
      const skip = (totalPages - 1) * limit
 
