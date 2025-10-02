@@ -32,7 +32,7 @@ const editCourse = async (req, res) => {
     try {
         const { courseId } = req.params;
 
-        const { avatarId} = req.body;
+        const { avatarId } = req.body;
 
         const isEditAllowed = await validateCourseField(courseId, req.body);
         if (!isEditAllowed) throw Error("invalid edit fields.");
@@ -77,4 +77,48 @@ const editCourse = async (req, res) => {
     }
 }
 
-module.exports = { createCourse, editCourse }
+const deleteFile = async (req, res) => {
+    try {
+        const { publicId, courseId } = req.body;
+
+        const response = await delateFromCloudinary(publicId);
+        if (!response) return res.status(404).json({ message: "File not found." })
+
+        const Course = await course.findOne({ _id: courseId })
+        if (!Course) throw Error("Course not found")
+
+        const { videoFileId, videos } = Course
+        const fileIndex = videoFileId.indexOf(publicId)
+
+        videos.splice(fileIndex, 1)
+        videoFileId.splice(fileIndex, 1)
+
+        await Course.save()
+
+        res.status(200).json({ message: "file deleted successfully." })
+
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+}
+
+
+const deleteCourse = async (req, res) => {
+    try {
+        const { courseId } = req.params
+        const Course = await course.findById({ _id: courseId })
+        const { videoFileId } = Course
+
+        for (const publicId of videoFileId) {
+            await delateFromCloudinary(publicId)
+        }
+        
+        await course.findByIdAndDelete({ _id: courseId })
+        res.status(200).json({ message: "Course deleted succesfully." })
+    } catch (error) {
+        console.log(error.message)
+        res.status(400).json({ message: error.message })
+    }
+}
+
+module.exports = { createCourse, editCourse, deleteFile, deleteCourse }

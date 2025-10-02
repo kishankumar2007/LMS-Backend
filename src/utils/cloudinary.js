@@ -12,16 +12,22 @@ const uploadOnCloudinary = async (localFilePath) => {
   try {
     const res = await cloudinary.uploader.upload(localFilePath, { resource_type: "auto" })
     fs.unlinkSync(localFilePath)
-    return { url: res.secure_url, fileId: res.public_id}
+    return { url: res.secure_url, fileId: res.public_id }
   } catch (error) {
     console.log(error.message)
   }
 }
 
 const delateFromCloudinary = async (publicId) => {
+  const types = ["image", "video", "raw"];
   try {
-    const res = await cloudinary.uploader.destroy(publicId)
-    return res
+    for (const type of types) {
+      const res = await cloudinary.uploader.destroy(publicId, { resource_type: type })
+
+      if (res.result === 'ok') {
+        return res
+      }
+    }
   } catch (error) {
     console.log(error.message)
   }
