@@ -29,6 +29,8 @@ const loginUser = async (req, res) => {
 
         const token = await user.getJWT(user._id)
 
+        if (!token) throw Error("Failed to store cookie")
+
         res.cookie("token", token, { https: true, secure: true, expires: new Date(Date.now() + 24 * 3600000) })
         res.status(200).json({ message: "Login success", user })
     } catch (error) {

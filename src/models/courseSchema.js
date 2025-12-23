@@ -9,14 +9,6 @@ const courseSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    videos: {
-        type: [String],
-        required: true
-    },
-    videoFileId: {
-        type: [String],
-        required: true
-    },
     avatar: {
         type: String,
         required: true
@@ -36,11 +28,11 @@ const courseSchema = new mongoose.Schema({
     isPublic: {
         type: Boolean,
         required: true,
-        default: true
+        default: false
     },
     category:{
         type: String,
-        enum: ['FullStack',"DataScience","MechineLearning","All","DSA",],
+        enum: ['Web Development',"DataScience","MechineLearning","All","DSA",],
         required: true
     }
 }, { timestamps: true })

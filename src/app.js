@@ -4,7 +4,7 @@ const { connectDB } = require("./config/config")
 const authRouter = require('./routes/auth.Route.js')
 const courseRouter = require("./routes/course.Route.js")
 const profileRouter = require("./routes/profile.Route.js")
-
+const chapterRouter = require("./routes/chapter.Route.js")
 require('dotenv').config()
 
 const app = express()
@@ -17,6 +17,7 @@ const PORT = process.env.PORT || 8000
 
 app.use("/api/v1", authRouter)
 app.use("/api/v1", courseRouter)
+app.use("/api/v1", chapterRouter)
 app.use("/api/v1", profileRouter)
 
 

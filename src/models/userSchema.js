@@ -54,7 +54,7 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.getJWT = async function () {
     try {
         const user = this
-        const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET)
+        const token =  jwt.sign({ _id: user._id }, process.env.JWT_SECRET)
         return token
     } catch (error) {
         console.log(error.message)

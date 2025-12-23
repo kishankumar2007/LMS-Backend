@@ -35,15 +35,17 @@ const editProfile = async (req, res) => {
 
 const myCourses = async (req, res) => {
     try {
-        const { userId } = req.params
-        const courses = await Course.findById({ _id: userId })
-        if (!courses) return res.status(404).json({ data: [] })
-        res.status(200).json({ courses })
+        const userId = req.user._id;
+
+        const courses = await EnrollCourse.find({ userId });
+
+        return res.status(200).json({ courses });
     } catch (error) {
-        console.log(error.message)
-        res.status(400).json({ message: "unable to find the courses." })
+        console.log(error.message);
+        return res.status(500).json({ message: "Unable to find courses" });
     }
-}
+};
+
 
 const buyCourse = async (req, res) => {
     try {
@@ -69,22 +71,22 @@ const buyCourse = async (req, res) => {
 
 
 const allCourses = async (req, res) => {
-   try {
-     const { limitReq } = req.query
-     const totalCourses = await Course.countDocuments()
+    try {
+        const { limitReq } = req.query
+        const totalCourses = await Course.countDocuments()
 
-     let limit = limitReq || 10
-     if (limitReq > 12) limit = 10
-     
-     const totalPages = Math.ceil(totalCourses / limit)
-     const skip = (totalPages - 1) * limit
+        let limit = limitReq || 10
+        if (limitReq > 12) limit = 10
 
-     const course = await Course.find().skip(skip).limit(limit)
-     res.status(200).json({ course })
+        const totalPages = Math.ceil(totalCourses / limit)
+        const skip = (totalPages - 1) * limit
 
-   } catch (error) {
-    res.status(500).json({message: "failed to load Courses."})
-   }
+        const course = await Course.find({}).skip(skip).limit(limit)
+        res.status(200).json({ course })
+
+    } catch (error) {
+        res.status(500).json({ message: "failed to load Courses.", data: error.message })
+    }
 }
 
 module.exports = { editProfile, myCourses, buyCourse, allCourses }

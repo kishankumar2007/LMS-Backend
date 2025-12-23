@@ -1,4 +1,4 @@
-# LMS-Backend-API
+# REST-API END POINTS
 
 # Users API
 
