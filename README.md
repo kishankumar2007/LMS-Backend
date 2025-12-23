@@ -136,6 +136,7 @@ http://localhost:3000
 | PATCH  | `/api/v1/edit-course/:courseId`      | Edit course   |
 | POST   | `/api/v1/course/delete/:courseId`    | Delete course |
 | GET    | `/api/v1/mycourses`                  | My courses    |
+| GET    | `/api/v1/courses/:courseId`          | Get courses   |
 | POST   | `/api/v1/user/:userId/:courseId/buy` | Buy course    |
 
 ---
@@ -144,6 +145,7 @@ http://localhost:3000
 
 | Method | Endpoint                                           | Description         |
 | ------ | -------------------------------------------------- | ------------------- |
+| GET    | `/api/v1/course/:courseId/chapters`                | Get All chapters    |
 | POST   | `/api/v1/course/:courseId/chapter/create`          | Add chapter         |
 | PATCH  | `/api/v1/course/chapter/:chapterId/edit`           | Edit chapter        |
 | POST   | `/api/v1/course/chapter/:chapterId/:fileId/delete` | Delete chapter file |

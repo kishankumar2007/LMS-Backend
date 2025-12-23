@@ -1,6 +1,6 @@
 const express = require("express")
 const { userAuth } = require("../middlewares/authMiddleware")
-const { addChapter, deleteChapterFiles, editChapter, deleteChapter } = require("../controllers/chapter.Controller");
+const { addChapter, deleteChapterFiles, editChapter, deleteChapter, allChapters } = require("../controllers/chapter.Controller");
 const upload = require("../middlewares/multer.Middleware");
 
 const router = express.Router()
@@ -33,6 +33,9 @@ router.patch("/course/chapter/:chapterId/edit", userAuth,
         }
 
     ]), editChapter)
+
+
+router.get("/course/:courseId/chapters", userAuth, allChapters)
 
 router.post("/course/chapter/:chapterId/:fileId/delete", userAuth, deleteChapterFiles)
 

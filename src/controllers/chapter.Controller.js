@@ -56,6 +56,23 @@ const addChapter = async (req, res) => {
 };
 
 
+const allChapters = async (req, res) => {
+    try {
+        const { courseId } = req.params
+
+        const chapters = await Chapter.find(courseId)
+
+        if (chapters.length === 0) {
+            return res.status(200).json({ chapters: [] })
+        }
+
+        res.status(200).json({ chapters })
+
+    } catch (error) {
+        res.status(400).json({ message: "Failed to load chapters", error: error.message })
+    }
+}
+
 const editChapter = async (req, res) => {
     try {
         const { chapterId } = req.params;
@@ -157,4 +174,5 @@ module.exports = {
     editChapter,
     deleteChapterFiles,
     deleteChapter,
+    allChapters
 };
