@@ -1,4 +1,5 @@
 const Chapter = require("../models/chapterSchema.js");
+const Course = require("../models/courseSchema.js");
 const { uploadOnCloudinary, deleteFromCloudinary } = require("../utils/cloudinary.js");
 const { deleteChapterById } = require("../utils/constant.js");
 
@@ -6,50 +7,32 @@ const { deleteChapterById } = require("../utils/constant.js");
 const addChapter = async (req, res) => {
     try {
         const { courseId } = req.params;
-        const { title, description, isPaid } = req.body;
+        const { title, description, isPaid, topics } = req.body;
 
-        if (!title?.trim() || !description?.trim()) {
-            return res.status(400).json({
-                message: "Title and description are required",
-            });
+        const course = await Course.findById({ _id: courseId })
+
+        if (!course) return res.status(404).json({ message: "invalid courseId" })
+
+        if ([title, description, isPaid].some(field => field.trim === "")) {
+            return res.status(400).json({ message: "all fields are requried" })
         }
 
-        const videoFiles = req.files?.video || [];
-        const attachmentFiles = req.files?.attachments || [];
-
-        const videos = [];
-        const attachments = [];
-
-
-        for (const file of videoFiles) {
-            const uploaded = await uploadOnCloudinary(file.path, "video");
-            videos.push({
-                url: uploaded.url,
-                fileId: uploaded.fileId,
-            });
+        for (const topic of topics) {
+            if (!topic.title?.trim()) {
+                return res.status(400).json({
+                    message: "Invalid topic format"
+                })
+            }
         }
 
-        for (const file of attachmentFiles) {
-            const uploaded = await uploadOnCloudinary(file.path, "raw");
-            attachments.push({
-                url: uploaded.url,
-                fileId: uploaded.fileId,
-            });
+        const chapter = await Chapter.create({ courseId, title, description, isPaid, topics })
+
+        if (chapter) {
+            res.status(200).json({ message: "Chapter added", chapter })
+        } else {
+            throw Error("Failed to create chapter")
         }
 
-        const chapter = await Chapter.create({
-            title,
-            description,
-            isPaid,
-            courseId,
-            videos,
-            attachments,
-        });
-
-        return res.status(201).json({
-            message: "Chapter created successfully",
-            chapter,
-        });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -60,7 +43,7 @@ const allChapters = async (req, res) => {
     try {
         const { courseId } = req.params
 
-        const chapters = await Chapter.find(courseId)
+        const chapters = await Chapter.find({ courseId })
 
         if (chapters.length === 0) {
             return res.status(200).json({ chapters: [] })

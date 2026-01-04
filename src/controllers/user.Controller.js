@@ -70,23 +70,6 @@ const buyCourse = async (req, res) => {
 }
 
 
-const allCourses = async (req, res) => {
-    try {
-        const { limitReq } = req.query
-        const totalCourses = await Course.countDocuments()
 
-        let limit = limitReq || 10
-        if (limitReq > 12) limit = 10
 
-        const totalPages = Math.ceil(totalCourses / limit)
-        const skip = (totalPages - 1) * limit
-
-        const course = await Course.find({}).skip(skip).limit(limit)
-        res.status(200).json({ course })
-
-    } catch (error) {
-        res.status(500).json({ message: "failed to load Courses.", data: error.message })
-    }
-}
-
-module.exports = { editProfile, myCourses, buyCourse, allCourses }
+module.exports = { editProfile, myCourses, buyCourse }

@@ -3,6 +3,7 @@ const { uploadOnCloudinary, delateFromCloudinary } = require("../utils/cloudinar
 const { validateCourseField } = require('../utils/validator')
 const Chapter = require("../models/chapterSchema")
 const { deleteChapterById } = require('../utils/constant')
+const EnrollCourse = require("../models/enrolledSchema")
 
 
 const createCourse = async (req, res) => {
@@ -101,4 +102,27 @@ const deleteCourse = async (req, res) => {
     }
 }
 
-module.exports = { createCourse, editCourse, deleteCourse, getCourse }
+const allCourses = async (req, res) => {
+    try {
+        let { page = 1, limit = 10 } = req.query
+        const loggedInUser = req.user
+        const enrolledIds = await EnrollCourse.find({ userId: loggedInUser._id }).distinct("courseId")
+
+        const totalCourses = await course.countDocuments({ _id: { $nin: enrolledIds } })
+
+        if (limit > 10) limit = 10
+
+        const totalPages = Math.ceil(totalCourses / limit)
+        const skip = (page - 1) * limit
+
+        const Course = await course.find({ _id: { $nin: enrolledIds } }).skip(skip).limit(limit)
+
+
+        res.status(200).json({ course: Course, totalPages })
+
+    } catch (error) {
+        res.status(500).json({ message: "failed to load Courses.", data: error.message })
+    }
+}
+
+module.exports = { createCourse, editCourse, deleteCourse, getCourse, allCourses }

@@ -5,12 +5,19 @@ const authRouter = require('./routes/auth.Route.js')
 const courseRouter = require("./routes/course.Route.js")
 const profileRouter = require("./routes/profile.Route.js")
 const chapterRouter = require("./routes/chapter.Route.js")
+const cors = require('cors')
+
 require('dotenv').config()
 
 const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
 app.use(cookiesParser())
+
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}))
 
 
 const PORT = process.env.PORT || 8000

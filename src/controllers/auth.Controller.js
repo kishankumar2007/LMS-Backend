@@ -21,7 +21,7 @@ const loginUser = async (req, res) => {
             throw Error("All fields are required.")
         }
         const user = await User.findOne({ email })
-
+        const { _id, name, age, avatar, role, gender, interest } = user
         if (!user) return res.status(400).json({ message: "email is not registed." })
 
         const isPasswordValid = await user.verifyPassword(password)
@@ -32,7 +32,8 @@ const loginUser = async (req, res) => {
         if (!token) throw Error("Failed to store cookie")
 
         res.cookie("token", token, { https: true, secure: true, expires: new Date(Date.now() + 24 * 3600000) })
-        res.status(200).json({ message: "Login success", user })
+
+        res.status(200).json({ message: "Login success", user: { _id, name, email, age, avatar, role, gender, interest } })
     } catch (error) {
         res.status(400).json({ message: error.message })
     }
@@ -42,7 +43,8 @@ const loginUser = async (req, res) => {
 const getUserProfile = async (req, res) => {
     try {
         const user = req.user
-        res.status(200).json({ user })
+        const { _id, name, email, age, avatar, role, gender, interest } = user
+        res.status(200).json({ user: { _id, name, email, age, avatar, role, gender, interest } })
     } catch (error) {
         console.log(error.message)
         res.status(500).json({ message: error.message })

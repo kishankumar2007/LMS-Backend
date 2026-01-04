@@ -1,8 +1,8 @@
 const express = require("express")
 const upload = require("../middlewares/multer.Middleware")
 const { adminAuth, userAuth } = require("../middlewares/authMiddleware")
-const { createCourse, editCourse, deleteCourse, getCourse } = require("../controllers/course.Controller")
-const { myCourses, buyCourse, allCourses } = require("../controllers/user.Controller")
+const { createCourse, editCourse, deleteCourse, getCourse,allCourses } = require("../controllers/course.Controller")
+const { myCourses, buyCourse } = require("../controllers/user.Controller")
 
 const router = express.Router()
 
@@ -23,7 +23,7 @@ router.post("/user/:userId/:courseId/buy", userAuth, buyCourse)
 
 router.post("/course/delete/:courseId", userAuth, deleteCourse)
 
-router.get("/feed", allCourses)
+router.get("/feed",userAuth, allCourses)
 
 router.get("/courses/:courseId", userAuth, getCourse)
 

@@ -4,51 +4,46 @@ const ChapterSchema = new mongoose.Schema({
     courseId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Course",
-        required: true,
+        required: true
     },
     title: {
         type: String,
         required: true,
-        trim: true,
+        trim: true
     },
-    description: {
-        type: String,
-        required: true,
-        trim: true,
-    },
+    description: String,
+
     isPaid: {
-        type: String,
-        required: true,
-        enum: ["Yes", "No"],
-        default: "Yes"
+        type: Boolean,
+        default: true
     },
-    videos: {
-        type: [{
-            url: {
+
+    topics: [
+        {
+            title: {
                 type: String,
                 required: true,
+                trim: true
             },
-            fileId: {
-                type: String,
-                required: true
-            }
-        }],
-        required: true
-    },
-    attachments: {
-       type: [{
-            url: {
-                type: String,
-                required: true,
+            isFree: {
+                type: Boolean,
+                default: false
             },
-            fileId: {
-                type: String,
-                required: true
-            }
-        }]
-    }
+            video: {
+                url: String,
+                fileId: String
+            },
+            attachments: [
+                {
+                    url: String,
+                    fileId: String
+                }
+            ]
+        }
+    ]
 
 }, { timestamps: true })
+
 
 
 module.exports = mongoose.model("Chapter", ChapterSchema);
