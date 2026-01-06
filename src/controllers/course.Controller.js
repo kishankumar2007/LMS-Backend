@@ -8,16 +8,20 @@ const EnrollCourse = require("../models/enrolledSchema")
 
 const createCourse = async (req, res) => {
     try {
+        const { _id } = req.user
 
-        const { name, description, avatar, instructor, amount, category } = req.body
-        if ([name, description, avatar, instructor, amount].some(field => field?.trim() === "")) {
+        const { name, description, instructor, amount, category } = req.body
+        if ([name, description,instructor, amount].some(field => field === "")) {
             throw Error("All fields are required.")
         }
+
         const avatarLocalPath = req?.files?.avatar[0]?.path
 
-
         const avatarUrl = await uploadOnCloudinary(avatarLocalPath)
-        const response = await course.create({ name, description, avatar: avatarUrl.url, instructor, amount, avatarId: avatarUrl.fileId, category })
+        console.log(avatarUrl)
+        const response = await course.create({ name, description, avatar: avatarUrl.url, instructor, amount, avatarId: avatarUrl.fileId, category, autherId: _id })
+
+
         if (response) res.status(200).json({ message: "Course created Successfully", course: response })
     } catch (error) {
         res.send(error.message)
@@ -103,26 +107,59 @@ const deleteCourse = async (req, res) => {
 }
 
 const allCourses = async (req, res) => {
+  try {
+    let { page = 1, limit = 10, category } = req.query;
+
+    const loggedInUser = req.user;
+
+    if (limit > 10) limit = 10;
+    page = Number(page);
+
+    const enrolledIds = await EnrollCourse
+      .find({ userId: loggedInUser._id })
+      .distinct("courseId");
+
+    const filter = {
+      _id: { $nin: enrolledIds }
+    };
+
+    if (category) {
+      filter.category = category;
+    }
+
+    const totalCourses = await course.countDocuments(filter);
+    const totalPages = Math.ceil(totalCourses / limit);
+    const skip = (page - 1) * limit;
+
+    const courses = await course
+      .find(filter)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      courses,
+      totalPages,
+      currentPage: page
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to load courses",
+      error: error.message
+    });
+  }
+};
+
+
+const adminUploadedCourses = async(req,res) => {
     try {
-        let { page = 1, limit = 10 } = req.query
         const loggedInUser = req.user
-        const enrolledIds = await EnrollCourse.find({ userId: loggedInUser._id }).distinct("courseId")
-
-        const totalCourses = await course.countDocuments({ _id: { $nin: enrolledIds } })
-
-        if (limit > 10) limit = 10
-
-        const totalPages = Math.ceil(totalCourses / limit)
-        const skip = (page - 1) * limit
-
-        const Course = await course.find({ _id: { $nin: enrolledIds } }).skip(skip).limit(limit)
-
-
-        res.status(200).json({ course: Course, totalPages })
-
+        const response = await course.find({autherId:loggedInUser._id})
+        res.status(200).json({message:"course fetched successfully",course:response})
     } catch (error) {
-        res.status(500).json({ message: "failed to load Courses.", data: error.message })
+        res.status(400).json({message:error.message})  
+        console.log(error.message)
     }
 }
-
-module.exports = { createCourse, editCourse, deleteCourse, getCourse, allCourses }
+module.exports = { createCourse, editCourse, deleteCourse, getCourse, allCourses,adminUploadedCourses }

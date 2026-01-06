@@ -5,10 +5,18 @@ const courseSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+
+    autherId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+
     description: {
         type: String,
         required: true
     },
+    
     avatar: {
         type: String,
         required: true
@@ -30,9 +38,9 @@ const courseSchema = new mongoose.Schema({
         required: true,
         default: false
     },
-    category:{
+    category: {
         type: String,
-        enum: ['Web Development',"DataScience","MechineLearning","All","DSA",],
+        enum: ['WebDevelopment', "DataScience", "MechineLearning", "All", "DSA",],
         required: true
     }
 }, { timestamps: true })

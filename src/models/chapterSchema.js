@@ -1,49 +1,71 @@
 const mongoose = require("mongoose");
 
+const TopicSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+
+  isFree: {
+    type: Boolean,
+    default: false
+  },
+
+  video: {
+    fileId: {
+      type: String,   
+      trim: true
+    },
+    duration: Number,
+    thumbnail: String 
+  },
+
+  attachments: [
+    {
+      fileId: String, 
+      url: String,     
+      name: String,
+      size: Number
+    }
+  ],
+
+  order: {
+    type: Number,
+    default: 0
+  }
+
+});
+
+
 const ChapterSchema = new mongoose.Schema({
-    courseId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Course",
-        required: true
-    },
-    title: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    description: String,
+  courseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Course",
+    required: true
+  },
 
-    isPaid: {
-        type: Boolean,
-        default: true
-    },
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
 
-    topics: [
-        {
-            title: {
-                type: String,
-                required: true,
-                trim: true
-            },
-            isFree: {
-                type: Boolean,
-                default: false
-            },
-            video: {
-                url: String,
-                fileId: String
-            },
-            attachments: [
-                {
-                    url: String,
-                    fileId: String
-                }
-            ]
-        }
-    ]
+  description: {
+    type: String,
+    trim: true
+  },
 
-}, { timestamps: true })
+  isPaid: {
+    type: Boolean,
+    default: true
+  },
 
+  topics: {
+    type: [TopicSchema],
+    default: []
+  }
 
+}, { timestamps: true });
 
 module.exports = mongoose.model("Chapter", ChapterSchema);

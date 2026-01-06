@@ -6,8 +6,8 @@ const createUser = async (req, res) => {
     try {
         const isFieldValid = await validateRegisterData(req.body)
         if (!isFieldValid) throw Error("Invalid input field.")
-        const { name, email, password, role } = req.body
-        const data = await User.create({ name, email, password, role })
+        const { name, email, password } = req.body
+        const data = await User.create({ name, email, password })
         res.status(200).json({ data, message: "Registered Successfully." })
     } catch (error) {
         res.status(400).json({ message: error.message })

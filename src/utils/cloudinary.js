@@ -26,9 +26,7 @@ const uploadOnCloudinary = async (localFilePath, resourceType = "auto") => {
       resourceType: res.resource_type,
     };
   } catch (error) {
-    if (fs.existsSync(localFilePath)) {
       fs.unlinkSync(localFilePath);
-    }
     throw error.message;
   }
 };
@@ -49,5 +47,18 @@ const delateFromCloudinary = async (publicId) => {
   }
 }
 
+const generateStreamingUrl = (fileId) => {
+  if (!fileId) {
+    throw new Error("fileId is required to generate streaming URL");
+  }
 
-module.exports = { uploadOnCloudinary, delateFromCloudinary }
+  return cloudinary.url(fileId, {
+    resource_type: "video",
+    format: "m3u8",         
+    streaming_profile: "hd",
+    secure: true
+  });
+};
+
+
+module.exports = { uploadOnCloudinary, delateFromCloudinary,generateStreamingUrl }

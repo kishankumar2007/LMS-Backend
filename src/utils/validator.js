@@ -2,8 +2,8 @@ const User = require("../models/userSchema");
 
 const validator = require("validator");
 
-async function validateRegisterData({ name, email, password, role }) {
-    if ([name, email, password, role].some(field => field.trim() === "")) {
+async function validateRegisterData({ name, email, password }) {
+    if ([name, email, password].some(field => field.trim === "")) {
         throw Error("All fields are required.")
     }
     const isValidEmail = validator.isEmail(email)
@@ -20,7 +20,7 @@ async function validateRegisterData({ name, email, password, role }) {
 
 async function validateCourseField(courseId, { name, description, instructor, amount }) {
 
-    if ([courseId, name, description, instructor, amount].some(field => field.trim() === "")) {
+    if ([courseId, name, description, instructor, amount].some(field => field.trim === "")) {
         throw Error("All fields are required.")
     }
     return true

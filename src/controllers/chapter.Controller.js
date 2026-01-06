@@ -1,42 +1,60 @@
 const Chapter = require("../models/chapterSchema.js");
 const Course = require("../models/courseSchema.js");
-const { uploadOnCloudinary, deleteFromCloudinary } = require("../utils/cloudinary.js");
-const { deleteChapterById } = require("../utils/constant.js");
+const { uploadOnCloudinary, deleteFromCloudinary,generateStreamingUrl, delateFromCloudinary } = require("../utils/cloudinary.js");
 
 
 const addChapter = async (req, res) => {
-    try {
-        const { courseId } = req.params;
-        const { title, description, isPaid, topics } = req.body;
+  try {
+    const { courseId } = req.params;
+    const { title, description, isPaid, topics } = req.body;
 
-        const course = await Course.findById({ _id: courseId })
-
-        if (!course) return res.status(404).json({ message: "invalid courseId" })
-
-        if ([title, description, isPaid].some(field => field.trim === "")) {
-            return res.status(400).json({ message: "all fields are requried" })
-        }
-
-        for (const topic of topics) {
-            if (!topic.title?.trim()) {
-                return res.status(400).json({
-                    message: "Invalid topic format"
-                })
-            }
-        }
-
-        const chapter = await Chapter.create({ courseId, title, description, isPaid, topics })
-
-        if (chapter) {
-            res.status(200).json({ message: "Chapter added", chapter })
-        } else {
-            throw Error("Failed to create chapter")
-        }
-
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Invalid courseId" });
     }
+
+    if (!title?.trim()) {
+      return res.status(400).json({ message: "Chapter title is required" });
+    }
+
+    if (typeof isPaid !== "boolean") {
+      return res.status(400).json({ message: "isPaid must be boolean" });
+    }
+
+    if (!Array.isArray(topics) || topics.length === 0) {
+      return res.status(400).json({ message: "At least one topic is required" });
+    }
+
+    for (const topic of topics) {
+      if (!topic.title?.trim()) {
+        return res.status(400).json({ message: "Topic title is required" });
+      }
+
+      if (topic.video?.fileId && typeof topic.video.fileId !== "string") {
+        return res.status(400).json({
+          message: "Invalid video fileId"
+        });
+      }
+    }
+
+    const chapter = await Chapter.create({
+      courseId,
+      title: title.trim(),
+      description,
+      isPaid,
+      topics
+    });
+
+    return res.status(201).json({
+      message: "Chapter added successfully",
+      chapter
+    });
+
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 };
+
 
 
 const allChapters = async (req, res) => {
@@ -56,106 +74,116 @@ const allChapters = async (req, res) => {
     }
 }
 
+
 const editChapter = async (req, res) => {
-    try {
-        const { chapterId } = req.params;
-        const chapter = await Chapter.findById(chapterId);
+  try {
+    const { chapterId } = req.params;
 
-        if (!chapter) {
-            return res.status(404).json({ message: "Chapter not found" });
-        }
-
-        const allowedFields = ["title", "description", "isPaid"];
-        allowedFields.forEach((field) => {
-            if (req.body[field] !== undefined) {
-                chapter[field] = req.body[field];
-            }
-        });
-
-        const videoFiles = req.files?.video || [];
-        const attachmentFiles = req.files?.attachments || [];
-
-        for (const file of videoFiles) {
-            const uploaded = await uploadOnCloudinary(file.path, "video");
-            chapter.videos.push({
-                url: uploaded.url,
-                fileId: uploaded.fileId,
-            });
-        }
-
-        for (const file of attachmentFiles) {
-            const uploaded = await uploadOnCloudinary(file.path, "raw");
-            chapter.attachments.push({
-                url: uploaded.url,
-                fileId: uploaded.fileId,
-            });
-        }
-
-        await chapter.save();
-
-        res.status(200).json({
-            message: "Chapter updated successfully",
-            chapter,
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    const chapter = await Chapter.findById(chapterId);
+    if (!chapter) {
+      return res.status(404).json({ message: "Chapter not found" });
     }
+
+
+    const { title, description, isPaid, topics } = req.body;
+
+    if (title !== undefined) chapter.title = title;
+    if (description !== undefined) chapter.description = description;
+    if (isPaid !== undefined) chapter.isPaid = isPaid;
+
+    if (Array.isArray(topics)) {
+      chapter.topics = topics.map((topic, index) => ({
+        title: topic.title,
+        isFree: topic.isFree,
+        video: {
+          fileId: topic.video?.fileId || "",
+        },
+        attachments: topic.attachments || [],
+      }));
+    }
+
+    await chapter.save();
+
+    return res.status(200).json({
+      message: "Chapter updated successfully",
+      chapter,
+    });
+
+  } catch (error) {
+    console.error("Edit chapter error:", error);
+    return res.status(500).json({
+      message: "Failed to update chapter",
+    });
+  }
 };
 
-const deleteChapterFiles = async (req, res) => {
-    try {
-        const { chapterId, fileId } = req.params;
-        const chapter = await Chapter.findById(chapterId);
 
-        if (!chapter) {
-            return res.status(404).json({ message: "Chapter not found" });
-        }
-
-        const video = chapter.videos.find((v) => v.fileId === fileId);
-        const attachment = chapter.attachments.find((a) => a.fileId === fileId);
-
-        if (video) {
-            await deleteFromCloudinary(video.fileId, "video");
-            chapter.videos = chapter.videos.filter((v) => v.fileId !== fileId);
-        }
-
-        if (attachment) {
-            await deleteFromCloudinary(attachment.fileId, "raw");
-            chapter.attachments = chapter.attachments.filter(
-                (a) => a.fileId !== fileId
-            );
-        }
-
-        await chapter.save();
-
-        res.status(200).json({ message: "File deleted successfully" });
-    } catch (error) {
-        res.status(500).json({
-            message: "Failed to delete file",
-            error: error.message,
-        });
-    }
-};
 
 
 const deleteChapter = async (req, res) => {
-    try {
-        const { chapterId } = req.params;
+  try {
+    const { chapterId } = req.params;
 
-        await deleteChapterById(chapterId);
-
-        res.status(200).json({
-            message: "Chapter deleted successfully",
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (!chapterId) {
+      return res.status(400).json({
+        message: "chapterId is required"
+      });
     }
+
+    const chapter = await Chapter.findById(chapterId);
+
+    if (!chapter) {
+      return res.status(404).json({
+        message: "Chapter not found"
+      });
+    }
+
+    for (const topic of chapter.topics) {
+      if (topic.video?.fileId) {
+        await delateFromCloudinary(topic.video.fileId);
+      }
+
+      if (topic.attachments?.length) {
+        for (const file of topic.attachments) {
+          if (file.fileId) {
+            await delateFromCloudinary(file.fileId);
+          }
+        }
+      }
+    }
+
+    await Chapter.findByIdAndDelete(chapterId);
+
+    return res.status(200).json({
+      message: "Chapter deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Delete chapter error:", error);
+    return res.status(500).json({
+      message: "Failed to delete chapter"
+    });
+  }
 };
+
+const getStreamUrl = async (req, res) => {
+  try {
+    const { fileId } = req.params;
+
+    const streamUrl = generateStreamingUrl(fileId);
+
+    return res.status(200).json({ streamUrl });
+
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
 
 module.exports = {
     addChapter,
     editChapter,
-    deleteChapterFiles,
     deleteChapter,
-    allChapters
+    allChapters,
+    getStreamUrl
 };
