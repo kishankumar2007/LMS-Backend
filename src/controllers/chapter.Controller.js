@@ -1,6 +1,6 @@
 const Chapter = require("../models/chapterSchema.js");
 const Course = require("../models/courseSchema.js");
-const { uploadOnCloudinary, deleteFromCloudinary,generateStreamingUrl, delateFromCloudinary } = require("../utils/cloudinary.js");
+const {generateStreamingUrl, delateFromCloudinary } = require("../utils/cloudinary.js");
 
 
 const addChapter = async (req, res) => {
@@ -60,7 +60,7 @@ const addChapter = async (req, res) => {
 const allChapters = async (req, res) => {
     try {
         const { courseId } = req.params
-
+        console.log(courseId)
         const chapters = await Chapter.find({ courseId })
 
         if (chapters.length === 0) {

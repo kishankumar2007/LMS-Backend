@@ -16,7 +16,7 @@ const courseSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    
+
     avatar: {
         type: String,
         required: true
@@ -40,7 +40,7 @@ const courseSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        enum: ['WebDevelopment', "DataScience", "MechineLearning", "All", "DSA",],
+        enum: ['Web Development', "DataScience", "Mechine Learning", "All", "DSA",],
         required: true
     }
 }, { timestamps: true })

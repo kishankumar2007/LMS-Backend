@@ -11,23 +11,22 @@ const createCourse = async (req, res) => {
         const { _id } = req.user
 
         const { name, description, instructor, amount, category } = req.body
-        if ([name, description,instructor, amount].some(field => field === "")) {
+        if ([name, description, instructor, amount].some(field => field === "")) {
             throw Error("All fields are required.")
         }
 
-        const avatarLocalPath = req?.files?.avatar[0]?.path
+        const avatarLocalPath = req?.files?.avatar?.[0]?.path
 
         const avatarUrl = await uploadOnCloudinary(avatarLocalPath)
-        console.log(avatarUrl)
+
         const response = await course.create({ name, description, avatar: avatarUrl.url, instructor, amount, avatarId: avatarUrl.fileId, category, autherId: _id })
 
 
         if (response) res.status(200).json({ message: "Course created Successfully", course: response })
     } catch (error) {
-        res.send(error.message)
+        res.status(400).json({message: error.message})
     }
 }
-
 
 const getCourse = async (req, res) => {
     try {
@@ -50,25 +49,24 @@ const editCourse = async (req, res) => {
     try {
         const { courseId } = req.params;
 
-        const { avatarId } = req.body;
+        const data = req.body
 
-        const isEditAllowed = await validateCourseField(courseId, req.body);
+        const isEditAllowed = await validateCourseField(data);
         if (!isEditAllowed) throw Error("invalid edit fields.");
 
 
         const avatarLocalPath = req.files?.avatar?.[0]?.path;
-        const videoFileLocalPath = req.files?.video || [];
         let Course = await course.findOne({ _id: courseId });
-
 
         Object.keys(req.body).forEach(key => {
             Course[key] = req.body[key];
         });
 
         let avatarUrl = {};
+        console.log(req.body)
 
         if (avatarLocalPath) {
-            await delateFromCloudinary(avatarId);
+            await delateFromCloudinary(data?.avatarId);
             avatarUrl = await uploadOnCloudinary(avatarLocalPath);
             Course.avatar = avatarUrl.url;
             Course.avatarId = avatarUrl.fileId;
@@ -88,17 +86,21 @@ const deleteCourse = async (req, res) => {
         const { courseId } = req.params
 
         const chapters = await Chapter.find({ courseId })
+        const { avatarId } = await course.findOne({ _id: courseId })
 
         for (const chapter of chapters) {
-            await deleteChapterById(chapter._id)
+            const res = await deleteChapterById(chapter._id)
+
+            if (!res) throw Error("Failed to delete course")
         }
 
+        await delateFromCloudinary(avatarId)
         const Course = await course.findByIdAndDelete({ _id: courseId })
         if (Course) {
 
             res.status(200).json({ message: "Course deleted succesfully." })
         } else {
-            throw error
+            throw Error("Failed to delete course")
         }
     } catch (error) {
         console.log(error.message)
@@ -107,59 +109,59 @@ const deleteCourse = async (req, res) => {
 }
 
 const allCourses = async (req, res) => {
-  try {
-    let { page = 1, limit = 10, category } = req.query;
+    try {
+        let { page = 1, limit = 10, category } = req.query;
 
-    const loggedInUser = req.user;
+        const loggedInUser = req.user;
 
-    if (limit > 10) limit = 10;
-    page = Number(page);
+        if (limit > 10) limit = 10;
+        page = Number(page);
 
-    const enrolledIds = await EnrollCourse
-      .find({ userId: loggedInUser._id })
-      .distinct("courseId");
+        const enrolledIds = await EnrollCourse
+            .find({ userId: loggedInUser._id })
+            .distinct("courseId");
 
-    const filter = {
-      _id: { $nin: enrolledIds }
-    };
+        const filter = {
+            _id: { $nin: enrolledIds }
+        };
 
-    if (category) {
-      filter.category = category;
+        if (category) {
+            filter.category = category;
+        }
+
+        const totalCourses = await course.countDocuments(filter);
+        const totalPages = Math.ceil(totalCourses / limit);
+        const skip = (page - 1) * limit;
+
+        const courses = await course
+            .find(filter)
+            .skip(skip)
+            .limit(limit);
+
+        res.status(200).json({
+            courses,
+            totalPages,
+            currentPage: page
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Failed to load courses",
+            error: error.message
+        });
     }
-
-    const totalCourses = await course.countDocuments(filter);
-    const totalPages = Math.ceil(totalCourses / limit);
-    const skip = (page - 1) * limit;
-
-    const courses = await course
-      .find(filter)
-      .skip(skip)
-      .limit(limit);
-
-    res.status(200).json({
-      courses,
-      totalPages,
-      currentPage: page
-    });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "Failed to load courses",
-      error: error.message
-    });
-  }
 };
 
 
-const adminUploadedCourses = async(req,res) => {
+const adminUploadedCourses = async (req, res) => {
     try {
         const loggedInUser = req.user
-        const response = await course.find({autherId:loggedInUser._id})
-        res.status(200).json({message:"course fetched successfully",course:response})
+        const response = await course.find({ autherId: loggedInUser._id })
+        res.status(200).json({ message: "course fetched successfully", course: response })
     } catch (error) {
-        res.status(400).json({message:error.message})  
+        res.status(400).json({ message: error.message })
         console.log(error.message)
     }
 }
-module.exports = { createCourse, editCourse, deleteCourse, getCourse, allCourses,adminUploadedCourses }
+module.exports = { createCourse, editCourse, deleteCourse, getCourse, allCourses, adminUploadedCourses }

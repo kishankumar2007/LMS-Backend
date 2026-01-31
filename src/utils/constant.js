@@ -10,14 +10,15 @@ const deleteChapterById = async (chapterId) => {
         throw new Error("Chapter not found");
     }
 
-    for (const video of chapter.videos) {
-        await delateFromCloudinary(video.fileId);
-    }
+    const { topics } = chapter
 
-    for (const attachment of chapter.attachments) {
-        await delateFromCloudinary(attachment.fileId);
-    }
+    for (const topic of topics) {
+        await delateFromCloudinary(topic.video.fileId);
 
+        for (const attachment of topic.attachments) {
+            await delateFromCloudinary(attachment.fileId);
+        }
+    }
     await Chapter.findByIdAndDelete(chapterId);
 
     return true;

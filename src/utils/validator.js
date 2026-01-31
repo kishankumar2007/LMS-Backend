@@ -18,9 +18,9 @@ async function validateRegisterData({ name, email, password }) {
     return true
 }
 
-async function validateCourseField(courseId, { name, description, instructor, amount }) {
-
-    if ([courseId, name, description, instructor, amount].some(field => field.trim === "")) {
+async function validateCourseField(course) {
+    const {name,description,instructor,amount} = course
+    if ([name, description, instructor, amount].some(field => field.trim === "")) {
         throw Error("All fields are required.")
     }
     return true
