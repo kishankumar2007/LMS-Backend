@@ -61,7 +61,12 @@ const logout = async (req, res) => {
     try {
         const user = req.user
         const token = user.getJWT()
-        res.cookie("token", token, { https: true, secure: true, expires: new Date(Date.now()) })
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            expires: new Date(Date.now())
+        })
         res.status(200).json({ message: "Logout Success" })
     } catch (error) {
         console.log(error.message)
