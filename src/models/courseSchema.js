@@ -40,7 +40,7 @@ const courseSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        enum: ['Web Development', "DataScience", "Mechine Learning", "All", "DSA",],
+        enum: ['Web Development', "DataScience", "Machine Learning", "All", "DSA",],
         required: true
     }
 }, { timestamps: true })
