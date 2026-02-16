@@ -21,8 +21,9 @@ const loginUser = async (req, res) => {
             throw Error("All fields are required.")
         }
         const user = await User.findOne({ email })
-        const { _id, name, age, avatar, role, gender, interest } = user
         if (!user) return res.status(400).json({ message: "email is not registed." })
+            
+        const { _id, name, age, avatar, role, gender, interest } = user
 
         const isPasswordValid = await user.verifyPassword(password)
         if (!isPasswordValid) return res.status(400).json({ message: "Email or password is not valid." })
@@ -36,7 +37,7 @@ const loginUser = async (req, res) => {
             secure: true,
             sameSite: "None",
             path: "/",
-            maxAge: 24 * 60 * 60 * 1000 
+            maxAge: 24 * 60 * 60 * 1000
         });
 
 
