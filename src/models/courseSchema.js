@@ -36,7 +36,8 @@ const courseSchema = new mongoose.Schema({
     isPublic: {
         type: Boolean,
         required: true,
-        default: false
+        default: false,
+        searchable: true
     },
     category: {
         type: String,

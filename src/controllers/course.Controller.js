@@ -122,7 +122,8 @@ const allCourses = async (req, res) => {
             .distinct("courseId");
 
         const filter = {
-            _id: { $nin: enrolledIds }
+            _id: { $nin: enrolledIds },
+            isPublic: true
         };
 
         if (category) {
